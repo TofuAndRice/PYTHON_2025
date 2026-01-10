@@ -85,3 +85,16 @@ class RegistryManager:
                 return None
         
         return current
+
+    def get_tree(self):
+        """
+        Return the full hierarchy of keys (names only, nested) for the UI tree.
+
+        Returns:
+            dict: A nested dictionary representing the key structure.
+        """
+        def build_structure(node):
+            # Recursively build dict of subkeys
+            return {k: build_structure(v) for k, v in node["subkeys"].items()}
+        
+        return build_structure(self.root)

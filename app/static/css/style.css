@@ -7,3 +7,28 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+
+/* Tree View Styling */
+.tree-list {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.tree-list li {
+    margin-top: 5px;
+}
+
+.tree-item {
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.tree-item:hover {
+    background-color: #e9ecef;
+}
+
+.tree-item.active {
+    background-color: #0d6efd;
+    color: white;
+}
