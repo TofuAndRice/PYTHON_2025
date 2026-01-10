@@ -1,0 +1,9 @@
+/* Main Stylesheet.
+    Used for layout tweaks not covered by Bootstrap utility classes.
+*/
+
+/* Ensure the main container takes up remaining height minus navbar */
+body {
+    height: 100vh;
+    overflow: hidden;
+}
