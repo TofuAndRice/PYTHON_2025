@@ -82,7 +82,7 @@ def rename_item():
     """Handle renaming of keys and values."""
     data = request.json
     path = data.get('path', '')
-    target_type = data.get('type') # 'key' or 'value'
+    target_type = data.get('type')
     new_name = data.get('new_name')
     
     if not new_name:
@@ -98,3 +98,23 @@ def rename_item():
         return jsonify({"success": success, "message": msg})
     
     return jsonify({"error": "Invalid type"}), 400
+
+@main.route('/api/search')
+def search():
+    """
+    Handle search requests.
+    
+    Query Params:
+        query (str): The text to search for.
+        path (str): The starting key path.
+        recursive (bool): 'true' to search subkeys.
+    """
+    query = request.args.get('query', '')
+    path = request.args.get('path', '')
+    recursive = request.args.get('recursive') == 'true'
+    
+    if not query:
+        return jsonify([])
+        
+    results = registry_manager.search_values(path, query, recursive)
+    return jsonify(results)
