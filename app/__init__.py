@@ -1,10 +1,16 @@
 """
 Flask Application Factory.
 
-This module initializes the Flask app and registers the routes blueprint.
+This module initializes the Flask app, the Registry backend, and registers routes.
 """
 
 from flask import Flask
+
+# Create a global instance of the RegistryManager
+# This ensures all routes access the same data in memory.
+from app.registry import RegistryManager
+
+registry_manager = RegistryManager()
 
 def create_app():
     """
