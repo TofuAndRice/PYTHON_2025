@@ -37,7 +37,6 @@ function renderTreeNode(node, path) {
         span.className = 'tree-item';
         span.textContent = keyName;
         
-        // Highlight active key
         if(fullPath === currentPath) span.classList.add('active');
 
         span.onclick = (e) => {
@@ -59,17 +58,13 @@ function selectKey(path, domElement) {
     currentPath = path;
     document.getElementById('display-path').textContent = path;
     
-    // Clear inputs
+    // Clear inputs and search state
     document.getElementById('new-key-name').value = '';
     document.getElementById('rename-key-input').value = '';
-    cancelValueRename(); // Hide rename form
+    cancelValueRename();
     clearValueForm();
 
-    // Update UI highlights
     document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-    // If called from tree click, domElement is passed. 
-    // If called from logic (after rename), we might not have the element handy, 
-    // but the tree redraw will handle it via the `if(fullPath === currentPath)` check above.
     if(domElement) domElement.classList.add('active');
 
     loadValues(path);
@@ -208,8 +203,6 @@ function deleteValue(name) {
     });
 }
 
-// --- Rename Logic ---
-
 function renameCurrentKey() {
     const newName = document.getElementById('rename-key-input').value;
     if(!newName) return;
@@ -227,11 +220,9 @@ function renameCurrentKey() {
     .then(data => {
         if(data.error || !data.success) alert(data.error || "Rename failed");
         else {
-            // Update currentPath to the new path returned by backend
             currentPath = data.new_path;
             document.getElementById('display-path').textContent = currentPath;
             document.getElementById('rename-key-input').value = '';
-            // Refresh tree to show new name
             loadTree(); 
         }
     });
@@ -273,6 +264,63 @@ function performValueRename() {
             loadValues(currentPath);
         }
     });
+}
+
+// --- Search Logic ---
+
+function performSearch() {
+    const query = document.getElementById('search-input').value;
+    const recursive = document.getElementById('search-recursive').checked;
+    const listPanel = document.getElementById('list-panel');
+
+    if (!query) {
+        alert("Please enter a search query");
+        return;
+    }
+
+    listPanel.innerHTML = '<p class="text-muted">Searching...</p>';
+
+    fetch(`/api/search?query=${encodeURIComponent(query)}&path=${encodeURIComponent(currentPath)}&recursive=${recursive}`)
+        .then(res => res.json())
+        .then(results => {
+            if (results.length === 0) {
+                listPanel.innerHTML = '<div class="alert alert-warning">No results found.</div>';
+                return;
+            }
+
+            let html = `
+                <div class="alert alert-info py-2 mb-2">
+                    Found ${results.length} results for "${query}"
+                    <button class="btn btn-sm btn-link float-end p-0" onclick="loadValues(currentPath)">Close Search</button>
+                </div>
+                <table class="table table-bordered table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>Value Name</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            results.forEach(item => {
+                html += `
+                    <tr>
+                        <td class="small text-muted">${item.location}</td>
+                        <td class="fw-bold">${item.name}</td>
+                        <td class="text-break">${item.data}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `</tbody></table>`;
+            listPanel.innerHTML = html;
+        })
+        .catch(err => {
+            console.error(err);
+            listPanel.innerHTML = '<p class="text-danger">Search error.</p>';
+        });
 }
 
 // --- Helpers ---
