@@ -100,9 +100,7 @@ class RegistryManager:
         return False, "Key not found"
 
     def rename_key(self, path, new_name):
-        """
-        Rename a key. Returns (Success, Message, NewPath).
-        """
+        """Rename a key. Returns (Success, Message, NewPath)."""
         if not path or '\\' not in path:
             return False, "Cannot rename root or top-level hives", path
 
@@ -115,9 +113,7 @@ class RegistryManager:
         if new_name in parent["subkeys"]:
             return False, "Name already exists", path
 
-        # Move the data
         parent["subkeys"][new_name] = parent["subkeys"].pop(old_name)
-        
         new_path = f"{parent_path}\\{new_name}"
         return True, "Key renamed", new_path
 
@@ -153,6 +149,40 @@ class RegistryManager:
         if new_name in key_node["values"]:
             return False, "Value name already exists"
 
-        # Move data
         key_node["values"][new_name] = key_node["values"].pop(old_name)
         return True, "Value renamed"
+
+    def search_values(self, start_path, query, recursive=False):
+        """
+        Search for values containing the query string (in name or data).
+        
+        Returns:
+            list: List of dicts {path, name, type, data}
+        """
+        results = []
+        query = query.lower()
+        
+        # Helper to process a single node
+        def process_node(current_path, node):
+            # Check values in this node
+            for name, details in node["values"].items():
+                val_data = str(details["data"])
+                if query in name.lower() or query in val_data.lower():
+                    results.append({
+                        "location": current_path,
+                        "name": name,
+                        "type": details["type"],
+                        "data": details["data"]
+                    })
+            
+            # Recurse if requested
+            if recursive:
+                for sub_name, sub_node in node["subkeys"].items():
+                    sub_path = f"{current_path}\\{sub_name}" if current_path else sub_name
+                    process_node(sub_path, sub_node)
+
+        start_node = self.get_key(start_path)
+        if start_node:
+            process_node(start_path, start_node)
+            
+        return results
