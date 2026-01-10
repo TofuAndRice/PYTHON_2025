@@ -17,11 +17,42 @@
 
     <div class="container-fluid flex-grow-1 d-flex overflow-hidden p-0">
         <div class="col-4 border-end bg-light p-3 overflow-auto" id="tree-panel">
-            <p class="text-muted">Registry Tree (Phase 2)</p>
+            <p class="text-muted">Loading tree...</p>
         </div>
 
-        <div class="col-8 p-3 overflow-auto" id="list-panel">
-            <p class="text-muted">Values (Phase 2)</p>
+        <div class="col-8 p-3 overflow-auto d-flex flex-column" id="right-panel">
+            <div class="card mb-3 p-2 bg-light">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <strong>Current Path:</strong> <span id="display-path" class="text-primary">Root</span>
+                        <button class="btn btn-sm btn-outline-danger float-end" onclick="deleteCurrentKey()">Delete Key</button>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="new-key-name" class="form-control" placeholder="New Key Name">
+                            <button class="btn btn-outline-secondary" onclick="createKey()">Add Key</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="val-name" class="form-control" placeholder="Val Name">
+                            <select id="val-type" class="form-select" style="max-width: 100px;">
+                                <option value="REG_SZ">String</option>
+                                <option value="REG_DWORD">DWORD</option>
+                                <option value="REG_BINARY">Binary</option>
+                            </select>
+                            <input type="text" id="val-data" class="form-control" placeholder="Data">
+                            <button class="btn btn-primary" onclick="saveValue()">Save Val</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="list-panel" class="flex-grow-1">
+                <p class="text-muted">Select a key to view values.</p>
+            </div>
         </div>
     </div>
 
