@@ -12,6 +12,17 @@
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">Browser RegEdit</span>
+            
+            <div class="d-flex" role="search">
+                <div class="input-group input-group-sm">
+                    <div class="input-group-text">
+                        <input class="form-check-input mt-0" type="checkbox" id="search-recursive" value="" aria-label="Recursive">
+                        <label class="small ms-1 mb-0" for="search-recursive">Recursive</label>
+                    </div>
+                    <input class="form-control" type="search" id="search-input" placeholder="Search..." aria-label="Search">
+                    <button class="btn btn-primary" type="button" onclick="performSearch()">Search</button>
+                </div>
+            </div>
         </div>
     </nav>
 
