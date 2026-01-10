@@ -75,9 +75,7 @@ class RegistryManager:
         return build_structure(self.root)
 
     def create_key(self, path, new_key_name):
-        """
-        Create a new subkey under the given path.
-        """
+        """Create a new subkey under the given path."""
         parent = self.get_key(path)
         if parent is None:
             return False, "Parent key not found"
@@ -89,9 +87,7 @@ class RegistryManager:
         return True, "Key created"
 
     def delete_key(self, path):
-        """
-        Delete the key at the specified path.
-        """
+        """Delete the key at the specified path."""
         if not path or '\\' not in path:
             return False, "Cannot delete root or top-level hives"
             
@@ -103,10 +99,30 @@ class RegistryManager:
             return True, "Key deleted"
         return False, "Key not found"
 
+    def rename_key(self, path, new_name):
+        """
+        Rename a key. Returns (Success, Message, NewPath).
+        """
+        if not path or '\\' not in path:
+            return False, "Cannot rename root or top-level hives", path
+
+        parent_path, old_name = path.rsplit('\\', 1)
+        parent = self.get_key(parent_path)
+
+        if not parent or old_name not in parent["subkeys"]:
+            return False, "Key not found", path
+
+        if new_name in parent["subkeys"]:
+            return False, "Name already exists", path
+
+        # Move the data
+        parent["subkeys"][new_name] = parent["subkeys"].pop(old_name)
+        
+        new_path = f"{parent_path}\\{new_name}"
+        return True, "Key renamed", new_path
+
     def set_value(self, path, name, val_type, data):
-        """
-        Create or update a value within a specific key.
-        """
+        """Create or update a value within a specific key."""
         key_node = self.get_key(path)
         if key_node is None:
             return False, "Key path not found"
@@ -118,11 +134,25 @@ class RegistryManager:
         return True, "Value saved"
 
     def delete_value(self, path, name):
-        """
-        Delete a value from a specific key.
-        """
+        """Delete a value from a specific key."""
         key_node = self.get_key(path)
         if key_node and name in key_node["values"]:
             del key_node["values"][name]
             return True, "Value deleted"
         return False, "Value not found"
+
+    def rename_value(self, path, old_name, new_name):
+        """Rename a value within a key."""
+        key_node = self.get_key(path)
+        if key_node is None:
+            return False, "Key path not found"
+
+        if old_name not in key_node["values"]:
+            return False, "Value not found"
+            
+        if new_name in key_node["values"]:
+            return False, "Value name already exists"
+
+        # Move data
+        key_node["values"][new_name] = key_node["values"].pop(old_name)
+        return True, "Value renamed"

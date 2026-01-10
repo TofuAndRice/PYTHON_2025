@@ -36,6 +36,10 @@ function renderTreeNode(node, path) {
         const span = document.createElement('span');
         span.className = 'tree-item';
         span.textContent = keyName;
+        
+        // Highlight active key
+        if(fullPath === currentPath) span.classList.add('active');
+
         span.onclick = (e) => {
             e.stopPropagation();
             selectKey(fullPath, span);
@@ -57,9 +61,15 @@ function selectKey(path, domElement) {
     
     // Clear inputs
     document.getElementById('new-key-name').value = '';
+    document.getElementById('rename-key-input').value = '';
+    cancelValueRename(); // Hide rename form
     clearValueForm();
 
+    // Update UI highlights
     document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+    // If called from tree click, domElement is passed. 
+    // If called from logic (after rename), we might not have the element handy, 
+    // but the tree redraw will handle it via the `if(fullPath === currentPath)` check above.
     if(domElement) domElement.classList.add('active');
 
     loadValues(path);
@@ -89,14 +99,13 @@ function renderValuesTable(values) {
                     <th>Name</th>
                     <th>Type</th>
                     <th>Data</th>
-                    <th style="width: 120px;">Actions</th>
+                    <th style="width: 140px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
     values.forEach(val => {
-        // Escape quotes for the onclick handlers
         const safeName = val.name.replace(/"/g, '&quot;');
         const safeData = String(val.data).replace(/"/g, '&quot;');
         
@@ -108,6 +117,8 @@ function renderValuesTable(values) {
                 <td>
                     <button class="btn btn-sm btn-link p-0 text-decoration-none" 
                         onclick="fillEditForm('${safeName}', '${val.type}', '${safeData}')">Edit</button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none text-dark ms-2" 
+                        onclick="showValueRename('${safeName}')">Rename</button>
                     <button class="btn btn-sm btn-link p-0 text-decoration-none text-danger ms-2" 
                         onclick="deleteValue('${safeName}')">Del</button>
                 </td>
@@ -134,7 +145,7 @@ function createKey() {
     .then(data => {
         if(data.error) alert(data.error);
         else {
-            loadTree(); // Refresh tree
+            loadTree();
             document.getElementById('new-key-name').value = '';
         }
     });
@@ -152,7 +163,6 @@ function deleteCurrentKey() {
     .then(data => {
         if(data.error) alert(data.error);
         else {
-            // Reset to root or parent (simplified to root for now)
             currentPath = ""; 
             document.getElementById('display-path').textContent = "Root";
             document.getElementById('list-panel').innerHTML = "";
@@ -195,6 +205,73 @@ function deleteValue(name) {
     .then(data => {
         if(data.error) alert(data.error);
         else loadValues(currentPath);
+    });
+}
+
+// --- Rename Logic ---
+
+function renameCurrentKey() {
+    const newName = document.getElementById('rename-key-input').value;
+    if(!newName) return;
+
+    fetch('/api/rename', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            path: currentPath, 
+            type: 'key',
+            new_name: newName 
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.error || !data.success) alert(data.error || "Rename failed");
+        else {
+            // Update currentPath to the new path returned by backend
+            currentPath = data.new_path;
+            document.getElementById('display-path').textContent = currentPath;
+            document.getElementById('rename-key-input').value = '';
+            // Refresh tree to show new name
+            loadTree(); 
+        }
+    });
+}
+
+function showValueRename(oldName) {
+    document.getElementById('rename-value-row').style.display = 'block';
+    document.getElementById('rename-val-old').value = oldName;
+    document.getElementById('rename-val-new').focus();
+}
+
+function cancelValueRename() {
+    document.getElementById('rename-value-row').style.display = 'none';
+    document.getElementById('rename-val-old').value = '';
+    document.getElementById('rename-val-new').value = '';
+}
+
+function performValueRename() {
+    const oldName = document.getElementById('rename-val-old').value;
+    const newName = document.getElementById('rename-val-new').value;
+    
+    if(!newName) return;
+
+    fetch('/api/rename', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            path: currentPath, 
+            type: 'value',
+            old_name: oldName,
+            new_name: newName 
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.error || !data.success) alert(data.error || "Rename failed");
+        else {
+            cancelValueRename();
+            loadValues(currentPath);
+        }
     });
 }
 

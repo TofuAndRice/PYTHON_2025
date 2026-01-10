@@ -76,3 +76,25 @@ def manage_values():
     if success:
         return jsonify({"message": msg})
     return jsonify({"error": msg}), 400
+
+@main.route('/api/rename', methods=['PUT'])
+def rename_item():
+    """Handle renaming of keys and values."""
+    data = request.json
+    path = data.get('path', '')
+    target_type = data.get('type') # 'key' or 'value'
+    new_name = data.get('new_name')
+    
+    if not new_name:
+        return jsonify({"error": "New name required"}), 400
+
+    if target_type == 'key':
+        success, msg, new_path = registry_manager.rename_key(path, new_name)
+        return jsonify({"success": success, "message": msg, "new_path": new_path})
+        
+    elif target_type == 'value':
+        old_name = data.get('old_name')
+        success, msg = registry_manager.rename_value(path, old_name, new_name)
+        return jsonify({"success": success, "message": msg})
+    
+    return jsonify({"error": "Invalid type"}), 400
