@@ -37,7 +37,8 @@
                 <div class="row g-2">
                     <div class="col-12 d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>Path:</strong> <span id="display-path" class="text-primary small">Root</span>
+                            <strong>Path:</strong> 
+                            <span id="display-path" class="text-primary small">Root</span>
                         </div>
                         <div>
                              <div class="input-group input-group-sm d-inline-flex w-auto me-2">
@@ -60,12 +61,18 @@
                     <div class="col-md-8">
                         <div class="input-group input-group-sm">
                             <input type="text" id="val-name" class="form-control" placeholder="Val Name">
-                            <select id="val-type" class="form-select" style="max-width: 90px;">
+                            
+                            <select id="val-type" class="form-select" style="max-width: 90px;" onchange="toggleInputType()">
                                 <option value="REG_SZ">SZ</option>
                                 <option value="REG_DWORD">DWORD</option>
+                                <option value="REG_MULTI_SZ">MULTI</option>
                                 <option value="REG_BINARY">BIN</option>
                             </select>
+                            
                             <input type="text" id="val-data" class="form-control" placeholder="Data">
+                            
+                            <textarea id="val-data-multi" class="form-control" placeholder="Multi-line Data" style="display: none; height: 31px; resize: none;"></textarea>
+
                             <button class="btn btn-primary" onclick="saveValue()">Save Val</button>
                         </div>
                     </div>
@@ -90,6 +97,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script src="{{ url_for('static', filename='js/globals.js') }}"></script>
     <script src="{{ url_for('static', filename='js/helpers.js') }}"></script>
     <script src="{{ url_for('static', filename='js/view-tree.js') }}"></script>

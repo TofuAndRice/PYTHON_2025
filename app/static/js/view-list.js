@@ -35,16 +35,18 @@ function renderValuesTable(values) {
 
     values.forEach(val => {
         const safeName = val.name.replace(/"/g, '&quot;');
+        // Handle Multi-Line display by replacing newlines with <br>
         const safeData = String(val.data).replace(/"/g, '&quot;');
+        const displayData = String(val.data).replace(/\n/g, '<br>');
         
         html += `
             <tr>
                 <td>${val.name}</td>
                 <td>${val.type}</td>
-                <td class="text-break">${val.data}</td>
+                <td class="text-break">${displayData}</td>
                 <td>
                     <button class="btn btn-sm btn-link p-0 text-decoration-none" 
-                        onclick="fillEditForm('${safeName}', '${val.type}', '${safeData}')">Edit</button>
+                        onclick="fillEditForm('${safeName}', '${val.type}', '${safeData.replace(/\n/g, '\\n')}')">Edit</button>
                     <button class="btn btn-sm btn-link p-0 text-decoration-none text-dark ms-2" 
                         onclick="showValueRename('${safeName}')">Rename</button>
                     <button class="btn btn-sm btn-link p-0 text-decoration-none text-danger ms-2" 
@@ -56,6 +58,13 @@ function renderValuesTable(values) {
 
     html += `</tbody></table>`;
     listPanel.innerHTML = html;
+}
+
+function highlightText(text, query) {
+    if (!query) return text;
+    // Regex to find query case-insensitively
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
 }
 
 function performSearch() {
@@ -98,11 +107,15 @@ function performSearch() {
             `;
             
             results.forEach(item => {
+                // Apply Highlighting 
+                const highlightedName = highlightText(item.name, query);
+                const highlightedData = highlightText(String(item.data), query);
+
                 html += `
                     <tr>
                         <td class="small text-muted">${item.location}</td>
-                        <td class="fw-bold">${item.name}</td>
-                        <td class="text-break">${item.data}</td>
+                        <td class="fw-bold">${highlightedName}</td>
+                        <td class="text-break">${highlightedData}</td>
                     </tr>
                 `;
             });

@@ -74,9 +74,37 @@ function renameCurrentKey() {
 function saveValue() {
     const name = document.getElementById('val-name').value;
     const type = document.getElementById('val-type').value;
-    const data = document.getElementById('val-data').value;
+    
+    // Determine which input to read from
+    let data;
+    if (type === 'REG_MULTI_SZ') {
+        data = document.getElementById('val-data-multi').value;
+    } else {
+        data = document.getElementById('val-data').value;
+    }
 
     if(!name) return;
+
+    // --- VALIDATION START ---
+    
+    // 1. DWORD Validation: Must be a number
+    if (type === 'REG_DWORD') {
+        if (isNaN(data) || data.trim() === '') {
+            alert("Error: REG_DWORD must be a numeric value (e.g., 0, 1, 1024).");
+            return; 
+        }
+    }
+
+    // 2. BINARY Validation: Must be Hex (0-9, A-F)
+    if (type === 'REG_BINARY') {
+        const hexPattern = /^[0-9A-Fa-f]+$/;
+        if (!hexPattern.test(data)) {
+            alert("Error: REG_BINARY must contain only Hexadecimal characters (0-9, A-F).");
+            return;
+        }
+    }
+
+    // --- VALIDATION END ---
 
     fetch('/api/values', {
         method: 'POST',
